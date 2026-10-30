@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'ziaabad-android-github.zip'
+      - 'ziaabad-part-0'
+      - 'ziaabad-part-1'
       - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
@@ -18,14 +19,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Locate and extract project ZIP
+      - name: Reassemble and extract project ZIP
         shell: bash
         run: |
           set -euo pipefail
-          ZIP="ziaabad-android-github.zip"
-          test -f "$ZIP" || { echo "::error::Upload ziaabad-android-github.zip to the repository root first."; exit 1; }
+          test -f ziaabad-part-0 || { echo "::error::Missing ziaabad-part-0"; exit 1; }
+          test -f ziaabad-part-1 || { echo "::error::Missing ziaabad-part-1"; exit 1; }
+          cat ziaabad-part-0 ziaabad-part-1 > ziaabad-android-ready.zip
+          unzip -tq ziaabad-android-ready.zip
           mkdir -p source
-          unzip -q "$ZIP" -d source
+          unzip -q ziaabad-android-ready.zip -d source
           PROJECT="$(find source -name package.json -printf '%h\n' | head -n 1)"
           test -n "$PROJECT" || { echo "::error::package.json was not found in the uploaded ZIP."; exit 1; }
           echo "PROJECT_DIR=$PROJECT" >> "$GITHUB_ENV"
