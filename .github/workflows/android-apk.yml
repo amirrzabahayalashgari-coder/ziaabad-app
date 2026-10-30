@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'ziaabad-part-0'
-      - 'ziaabad-part-1'
+      - 'ziaabad-chunk-*'
       - '.github/workflows/android-apk.yml'
   workflow_dispatch:
 
@@ -23,9 +22,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f ziaabad-part-0 || { echo "::error::Missing ziaabad-part-0"; exit 1; }
-          test -f ziaabad-part-1 || { echo "::error::Missing ziaabad-part-1"; exit 1; }
-          cat ziaabad-part-0 ziaabad-part-1 > ziaabad-android-ready.zip
+          for part in 0 1 2 3; do
+            test -f "ziaabad-chunk-$part" || { echo "::error::Missing ziaabad-chunk-$part"; exit 1; }
+          done
+          cat ziaabad-chunk-0 ziaabad-chunk-1 ziaabad-chunk-2 ziaabad-chunk-3 > ziaabad-android-ready.zip
           unzip -tq ziaabad-android-ready.zip
           mkdir -p source
           unzip -q ziaabad-android-ready.zip -d source
