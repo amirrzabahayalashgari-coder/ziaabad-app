@@ -1,0 +1,42 @@
+name: WIFI RADAR PRO Android APK
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'WIFI-RADAR-PRO/**'
+      - '.github/workflows/wifi-radar-pro-apk.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify project
+        run: |
+          test -f WIFI-RADAR-PRO/settings.gradle
+          test -f WIFI-RADAR-PRO/app/build.gradle
+          test -f WIFI-RADAR-PRO/app/src/main/AndroidManifest.xml
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android SDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build debug APK
+        working-directory: WIFI-RADAR-PRO
+        run: gradle assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WIFI-RADAR-PRO-debug-apk
+          path: WIFI-RADAR-PRO/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
