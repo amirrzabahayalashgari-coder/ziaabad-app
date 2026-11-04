@@ -1,0 +1,14 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.ziaabad.starlink'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.ziaabad.starlink'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+}
