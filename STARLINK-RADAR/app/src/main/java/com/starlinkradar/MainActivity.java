@@ -41,8 +41,17 @@ public class MainActivity extends Activity {
     private String jsonNetworks(){
         JSONArray arr=new JSONArray();try{List<ScanResult> list=wifi.getScanResults();Collections.sort(list,(a,b)->Integer.compare(b.level,a.level));
             for(ScanResult n:list){JSONObject o=new JSONObject();o.put("ssid",n.SSID==null||n.SSID.isEmpty()?"شبکه مخفی":n.SSID);o.put("bssid",n.BSSID==null?"":n.BSSID);o.put("rssi",n.level);o.put("frequency",n.frequency);
-                String band=n.frequency>=5925?"6 GHz":(n.frequency>=4900?"5 GHz":"2.4 GHz");o.put("band",band);o.put("capabilities",n.capabilities==null?"":n.capabilities);o.put("starlinkHint",n.SSID!=null&&n.SSID.toLowerCase(Locale.ROOT).contains("starlink"));arr.put(o);}
+                String band=n.frequency>=5925?"6 GHz":(n.frequency>=4900?"5 GHz":"2.4 GHz");o.put("band",band);o.put("capabilities",n.capabilities==null?"":n.capabilities);o.put("starlinkHint",n.SSID!=null&&n.SSID.toLowerCase(Locale.ROOT).contains("starlink"));JSONObject clue=classifyStarlinkName(n.SSID);o.put("starlinkScore",clue.optInt("score"));o.put("starlinkLevel",clue.optString("level"));o.put("starlinkReason",clue.optString("reason"));arr.put(o);}
         }catch(Exception ignored){}return arr.toString();
+    }
+    private JSONObject classifyStarlinkName(String ssid){
+        JSONObject out=new JSONObject();String raw=ssid==null?"":ssid.toLowerCase(Locale.ROOT);
+        String compact=raw.replaceAll("[^a-z0-9]","");
+        int score=0;String level="بدون نشانه";String reason="نام شبکه نشانه متنی مشخصی از Starlink ندارد.";
+        if(compact.contains("starlink")){score=95;level="سرنخ متنی قوی";reason="نام شبکه شامل واژه Starlink است؛ این فقط قرینه نام‌گذاری است.";}
+        else if(compact.matches(".*(starl1nk|starlik|starlnk|starlinkwifi|starlikwifi).*")){score=80;level="شباهت نوشتاری";reason="نام شبکه به شکل نوشتاری Starlink شباهت دارد؛ مالکیت تأیید نمی‌شود.";}
+        else if(compact.matches(".*(satellite|satnet|orbit|spacenet|dishnet).*")){score=18;level="سرنخ عمومی ضعیف";reason="نام شبکه واژه عمومی مرتبط با ماهواره/فضا دارد؛ اختصاصی Starlink نیست.";}
+        try{out.put("score",score);out.put("level",level);out.put("reason",reason);}catch(Exception ignored){}return out;
     }
     private void sendNetworks(boolean fresh){final String data=jsonNetworks();runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onRadarNetworks("+data+","+fresh+")",null);});}
     private void scan(){if(!hasLocationPermission()){requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION},REQ);return;}
