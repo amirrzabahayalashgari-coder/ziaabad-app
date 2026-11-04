@@ -20,6 +20,7 @@ jobs:
       - name: Verify Android project
         run: |
           test -f STARLINK-RADAR/settings.gradle
+          test -f STARLINK-RADAR/build.gradle
           test -f STARLINK-RADAR/app/build.gradle
           test -f STARLINK-RADAR/app/src/main/AndroidManifest.xml
 
@@ -29,14 +30,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Build debug APK
         working-directory: STARLINK-RADAR
-        run: |
-          gradle --version
-          gradle assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
