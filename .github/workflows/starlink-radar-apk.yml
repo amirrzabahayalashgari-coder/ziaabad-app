@@ -1,0 +1,47 @@
+name: STARLINK RADAR Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'STARLINK-RADAR/**'
+      - '.github/workflows/starlink-radar-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify Android project
+        run: |
+          test -f STARLINK-RADAR/settings.gradle
+          test -f STARLINK-RADAR/app/build.gradle
+          test -f STARLINK-RADAR/app/src/main/AndroidManifest.xml
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build debug APK
+        working-directory: STARLINK-RADAR
+        run: |
+          gradle --version
+          gradle assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: STARLINK-RADAR-debug-apk
+          path: STARLINK-RADAR/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
