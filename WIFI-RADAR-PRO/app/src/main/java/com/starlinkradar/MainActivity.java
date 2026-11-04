@@ -49,7 +49,8 @@ public class MainActivity extends Activity {
     private String channelWidth(int w){switch(w){case 0:return "20 MHz";case 1:return "40 MHz";case 2:return "80 MHz";case 3:return "160 MHz";case 4:return "80+80 MHz";default:return "نامشخص";}}
     private String securityType(String c){if(c==null)return "نامشخص";String u=c.toUpperCase(Locale.ROOT);if(u.contains("WPA3")||u.contains("SAE"))return "WPA3";if(u.contains("WPA2"))return "WPA2";if(u.contains("WPA"))return "WPA";if(u.contains("WEP"))return "WEP";if(u.contains("ESS"))return "باز یا بدون رمز";return "نامشخص";}
     private String connectionDetails(){JSONObject o=new JSONObject();try{WifiInfo i=wifi.getConnectionInfo();DhcpInfo d=wifi.getDhcpInfo();o.put("ssid",i.getSSID()==null?"":i.getSSID().replace("\"",""));o.put("bssid",i.getBSSID()==null?"":i.getBSSID());o.put("frequency",i.getFrequency()+" MHz");o.put("linkSpeed",i.getLinkSpeed()+" Mbps");o.put("localIp",android.text.format.Formatter.formatIpAddress(i.getIpAddress()));o.put("gateway",android.text.format.Formatter.formatIpAddress(d.gateway));}catch(Exception e){try{o.put("error","اطلاعات اتصال در دسترس نیست");}catch(Exception ignored){}}return o.toString();}
-\n    private JSONObject classifyStarlinkName(String ssid){
+
+    private JSONObject classifyStarlinkName(String ssid){
         JSONObject out=new JSONObject();String raw=ssid==null?"":ssid.toLowerCase(Locale.ROOT);
         String compact=raw.replaceAll("[^a-z0-9]","");
         int score=0;String level="بدون نشانه";String reason="نام شبکه نشانه متنی مشخصی از Starlink ندارد.";
@@ -77,7 +78,8 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface public String getConnectionDetails(){return connectionDetails();}
         @JavascriptInterface public void lookupPublicIp(){ExecutorService ex=Executors.newSingleThreadExecutor();ex.execute(()->{HttpURLConnection c=null;try{c=(HttpURLConnection)new URL("https://ipwho.is/").openConnection();c.setConnectTimeout(10000);c.setReadTimeout(10000);InputStream in=c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] b=new byte[4096];int n;while((n=in.read(b))!=-1)out.write(b,0,n);in.close();JSONObject src=new JSONObject(new String(out.toByteArray(),"UTF-8"));JSONObject data=new JSONObject();data.put("ip",src.optString("ip"));data.put("country",src.optString("country"));JSONObject cn=src.optJSONObject("connection");if(cn!=null){data.put("org",cn.optString("org"));data.put("asn",cn.optString("asn"));}runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onPublicIp("+data.toString()+",null)",null);});}catch(Exception e){runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onPublicIp(null,'دریافت IP عمومی ناموفق بود')",null);});}finally{if(c!=null)c.disconnect();ex.shutdown();}});}
-\n        @JavascriptInterface public void scan(){runOnUiThread(()->MainActivity.this.scan());}
+
+        @JavascriptInterface public void scan(){runOnUiThread(()->MainActivity.this.scan());}
         @JavascriptInterface public String getNetworks(){return jsonNetworks();}
         @JavascriptInterface public String getLocation(){return locationJson();}
         @JavascriptInterface public void requestLocation(){runOnUiThread(()->requestLiveLocation());}
