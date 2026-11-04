@@ -11,7 +11,10 @@ import android.os.Bundle;
 import android.webkit.*;
 import android.widget.Toast;
 import org.json.*;
-import java.util.*;\nimport java.net.*;\nimport java.io.*;\nimport java.util.concurrent.*;
+import java.util.*;
+import java.net.*;
+import java.io.*;
+import java.util.concurrent.*;
 
 public class MainActivity extends Activity {
     private WebView web; private WifiManager wifi; private LocationManager locationManager;
@@ -62,7 +65,8 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String getLocation(){return locationJson();}
         @JavascriptInterface public void requestLocation(){runOnUiThread(()->requestLiveLocation());}
         @JavascriptInterface public void openMap(int radius){runOnUiThread(()->{try{JSONObject p=new JSONObject(locationJson());if(p.has("lat")){String u="https://www.openstreetmap.org/?mlat="+p.getDouble("lat")+"&mlon="+p.getDouble("lon")+"#map="+(radius>500?14:radius>200?15:radius>80?16:17)+"/"+p.getDouble("lat")+"/"+p.getDouble("lon");startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(u)));}else toast(p.optString("error","موقعیت موجود نیست"));}catch(Exception e){toast("ابتدا موقعیت GPS را دریافت کنید.");}});}
-        @JavascriptInterface public void speedTest(){ExecutorService ex=Executors.newSingleThreadExecutor();ex.execute(()->{HttpURLConnection c=null;try{long start=System.nanoTime();c=(HttpURLConnection)new URL("https://speed.cloudflare.com/__down?bytes=3000000").openConnection();c.setConnectTimeout(10000);c.setReadTimeout(20000);c.setRequestProperty("Cache-Control","no-cache");InputStream in=c.getInputStream();byte[] buf=new byte[8192];long total=0;int n;while((n=in.read(buf))!=-1){total+=n;if(total>=2500000)break;}in.close();double sec=(System.nanoTime()-start)/1e9;double mbps=(total*8.0/1000000.0)/sec;final double value=mbps;runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onRadarSpeed("+value+",null)",null);});}catch(Exception e){runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onRadarSpeed(0,'آزمون سرعت انجام نشد؛ اتصال اینترنت را بررسی کنید.')",null);});}finally{if(c!=null)c.disconnect();ex.shutdown();}});}\n        @JavascriptInterface public void shareReport(String text){runOnUiThread(()->{Intent i=new Intent(Intent.ACTION_SEND);i.setType("text/plain");i.putExtra(Intent.EXTRA_TEXT,text);startActivity(Intent.createChooser(i,"اشتراک گزارش اسکن"));});}
+        @JavascriptInterface public void speedTest(){ExecutorService ex=Executors.newSingleThreadExecutor();ex.execute(()->{HttpURLConnection c=null;try{long start=System.nanoTime();c=(HttpURLConnection)new URL("https://speed.cloudflare.com/__down?bytes=3000000").openConnection();c.setConnectTimeout(10000);c.setReadTimeout(20000);c.setRequestProperty("Cache-Control","no-cache");InputStream in=c.getInputStream();byte[] buf=new byte[8192];long total=0;int n;while((n=in.read(buf))!=-1){total+=n;if(total>=2500000)break;}in.close();double sec=(System.nanoTime()-start)/1e9;double mbps=(total*8.0/1000000.0)/sec;final double value=mbps;runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onRadarSpeed("+value+",null)",null);});}catch(Exception e){runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onRadarSpeed(0,'آزمون سرعت انجام نشد؛ اتصال اینترنت را بررسی کنید.')",null);});}finally{if(c!=null)c.disconnect();ex.shutdown();}});}
+        @JavascriptInterface public void shareReport(String text){runOnUiThread(()->{Intent i=new Intent(Intent.ACTION_SEND);i.setType("text/plain");i.putExtra(Intent.EXTRA_TEXT,text);startActivity(Intent.createChooser(i,"اشتراک گزارش اسکن"));});}
     }
     @Override public void onRequestPermissionsResult(int r,String[] p,int[] g){super.onRequestPermissionsResult(r,p,g);if(r==REQ&&hasLocationPermission()){registerScanReceiver();toast("مجوز مکان داده شد؛ دوباره عملیات را اجرا کنید.");}else if(r==REQ)toast("برای اسکن و GPS مجوز مکان لازم است.");}
     @Override protected void onPause(){super.onPause();try{locationManager.removeUpdates(locationListener);}catch(Exception ignored){}}
