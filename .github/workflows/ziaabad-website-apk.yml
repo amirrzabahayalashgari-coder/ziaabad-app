@@ -1,0 +1,43 @@
+name: Build ZIAABAD WEBSITE APK
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/ziaabad-website-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download website source archive
+        run: |
+          curl -fL 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-49d4-81f4-a8ab-0a3dd8f55d41/raw?se=2026-11-04T16%3A43%3A46Z&sp=r&sv=2026-02-06&sr=b&scid=25acd7a6-7d00-551c-8afc-c4b822f41a4c&skoid=5bfb38a5-43fb-4c63-80a1-6ae1e97e2e16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-04T07%3A15%3A15Z&ske=2026-11-05T07%3A15%3A15Z&sks=b&skv=2026-02-06&sig=9Udg9JneqTlXte8QSMrKK3qXa9Srel%2BQx5X4jbuz5ig%3D' -o ziaabad-source.zip
+          unzip -tq ziaabad-source.zip
+          mkdir source
+          unzip -q ziaabad-source.zip -d source
+          echo "PROJECT_DIR=$(find source -name package.json -printf '%h\n' | head -n 1)" >> "$GITHUB_ENV"
+      - name: Build Android APK
+        run: |
+          cd "$PROJECT_DIR"
+          npm install
+          npx cap add android
+          npx cap sync android
+          sed -i 's/<string>ضیاءآباد<\/string>/<string>ZIAABAD WEBSITE<\/string>/' android/app/src/main/res/values/strings.xml
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZIAABAD-WEBSITE-APK
+          path: ${{ env.PROJECT_DIR }}/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
