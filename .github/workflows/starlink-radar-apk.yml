@@ -1,4 +1,4 @@
-name: STARLINK RADAR Android APK
+name: ZIAABAD WEBSITE Android APK
 
 on:
   workflow_dispatch:
@@ -47,10 +47,13 @@ jobs:
         working-directory: STARLINK-RADAR
         run: gradle assembleDebug --stacktrace
 
+      - name: Rename APK file
+        run: cp STARLINK-RADAR/app/build/outputs/apk/debug/app-debug.apk ZIAABAD-WEBSITE.apk
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: STARLINK-RADAR-debug-apk
-          path: STARLINK-RADAR/app/build/outputs/apk/debug/*.apk
+          name: ZIAABAD-WEBSITE-APK
+          path: ZIAABAD-WEBSITE.apk
           if-no-files-found: error
           retention-days: 14
