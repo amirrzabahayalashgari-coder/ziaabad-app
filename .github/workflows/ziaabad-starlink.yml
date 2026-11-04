@@ -1,0 +1,40 @@
+name: Build Ziaabad Starlink APK
+
+on:
+  push:
+    paths:
+      - 'ziaabad-starlink/**'
+      - '.github/workflows/ziaabad-starlink.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Build debug APK
+        working-directory: ziaabad-starlink
+        run: gradle --no-daemon assembleDebug
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ziaabad-Starlink-APK
+          path: ziaabad-starlink/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish latest APK release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "Ziaabad Starlink Android" --notes "Automatically built Android APK."
+          gh release upload android-latest ziaabad-starlink/app/build/outputs/apk/debug/app-debug.apk --clobber
