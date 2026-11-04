@@ -6,6 +6,7 @@ import android.content.*;
 import android.content.pm.PackageManager;
 import android.location.*;
 import android.net.Uri;
+import android.net.DhcpInfo;
 import android.net.wifi.*;
 import android.os.Bundle;
 import android.webkit.*;
