@@ -1,14 +1,3 @@
-plugins {
-    id 'com.android.application'
-}
-android {
-    namespace 'com.starlinkradar'
-    compileSdk 35
-    defaultConfig {
-        applicationId 'com.starlinkradar'
-        minSdk 23
-        targetSdk 28
-        versionCode 3
-        versionName '1.3'
-    }
-}
+plugins { id 'com.android.application' }
+android { namespace 'com.starlinkradar'; compileSdk 35
+ defaultConfig { applicationId 'com.starlinkradar'; minSdk 23; targetSdk 28; versionCode 4; versionName '1.4' } }
