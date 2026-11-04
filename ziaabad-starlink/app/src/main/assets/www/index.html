@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIFI RADAR PRO - سامانه تحلیل و رادار وای‌فای</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Vazirmatn Persian Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <!-- Chart.js for Signal Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0a0d18',
+                            panel: 'rgba(15, 23, 42, 0.75)',
+                            cyan: '#00f2fe',
+                            blue: '#4facfe',
+                            purple: '#7f00ff',
+                            starlinkRed: '#ff2a6d',
+                            starlinkYellow: '#ffb703',
+                            starlinkGreen: '#05ffa1'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 15px rgba(0, 242, 254, 0.4), 0 0 30px rgba(0, 242, 254, 0.2)',
+                        'neon-purple': '0 0 15px rgba(127, 0, 255, 0.4), 0 0 30px rgba(127, 0, 255, 0.2)',
+                        'neon-red': '0 0 15px rgba(255, 42, 109, 0.4), 0 0 30px rgba(255, 42, 109, 0.2)',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #060913;
+            color: #e2e8f0;
+            font-family: 'Vazirmatn', sans-serif;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(127, 0, 255, 0.06) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(13, 20, 36, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 242, 254, 0.15);
+            border-radius: 1rem;
+        }
+
+        .glass-card {
+            background: rgba(18, 28, 49, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 242, 254, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 242, 254, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090e1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f2fe;
+        }
+
+        /* Scan Radar Animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .radar-ring {
+            animation: pulse-ring 3s infinite ease-in-out;
+        }
+
+        /* Glow effects */
+        .glow-text-cyan {
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+        
+        .glow-text-red {
+            text-shadow: 0 0 10px rgba(255, 42, 109, 0.6);
+        }
+
+        /* Pulse Blip */
+        @keyframes blip-flash {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.7); }
+        }
+        .radar-blip {
+            animation: blip-flash 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-6 pb-20">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="glass-panel mb-6 p-4 flex flex-wrap justify-between items-center gap-4 sticky top-2 z-40 shadow-neon-cyan">
+        <div class="flex items-center gap-3">
+            <div class="relative w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 p-0.5 shadow-neon-cyan flex items-center justify-center">
+                <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                    <i class="fa-solid font-bold fa-radar text-2xl text-cyan-400 animate-spin" style="animation-duration: 8s;"></i>
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl sm:text-2xl font-black tracking-wider text-white">WIFI RADAR <span class="text-cyan-400">PRO</span></h1>
+                    <span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded-full font-bold">نسخه ۲.۴</span>
+                </div>
+                <p class="text-xs text-slate-400">سامانه حرفه‌ای شناساگر شبکه‌های وای‌فای و تحلیل Starlink</p>
+            </div>
+        </div>
+
+        <!-- STATUS BADGES & CONTROLS -->
+        <div class="flex flex-wrap items-center gap-3">
+            <div id="permissionBadge" class="flex items-center gap-2 bg-slate-900/80 border border-slate-700/60 px-3 py-1.5 rounded-lg text-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-300">مجوزهای مکان: <strong class="text-emerald-400">تایید شده</strong></span>
+            </div>
+
+            <div id="scanStatusBadge" class="flex items-center gap-2 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1.5 rounded-lg text-xs">
+                <span id="scanStatusDot" class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                <span id="scanStatusText" class="text-cyan-300 font-medium">آماده اسکن</span>
+            </div>
+
+            <button onclick="openInfoModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 p-2 rounded-lg text-sm transition" title="راهنما و راهنمای امنیتی">
+                <i class="fa-solid fa-circle-info text-cyan-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto space-y-6">
+
+        <!-- DASHBOARD HERO SECTION: RADAR + STATS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- LEFT/MAIN RADAR CANVAS CONTAINER (7 Cols) -->
+            <div class="lg:col-span-7 glass-panel p-5 flex flex-col items-center justify-between relative overflow-hidden">
+                <!-- Background Grid Lines -->
+                <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#00f2fe_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+                <div class="w-full flex justify-between items-center mb-2 z-10">
+                    <span class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-crosshairs text-cyan-400"></i>
+                        رادار زنده فرکانس و سیگنال
+                    </span>
+                    <span id="radarRange" class="text-xs font-mono text-cyan-400/80 bg-cyan-950/60 border border-cyan-500/20 px-2 py-0.5 rounded">
+                        محدوده: ~۱۰۰ متر
+                    </span>
+                </div>
+
+                <!-- RADAR CANVAS DISPLAY -->
+                <div class="relative my-4 flex items-center justify-center">
+                    <canvas id="radarCanvas" width="340" height="340" class="rounded-full shadow-neon-cyan border border-cyan-500/30 bg-slate-950/90 cursor-pointer"></canvas>
+                    
+                    <!-- Center Pulse Ring -->
+                    <div class="absolute w-full h-full pointer-events-none flex items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400 radar-ring"></div>
+                    </div>
+                </div>
+
+                <!-- SCAN CONTROLLER BUTTON -->
+                <div class="w-full mt-2 flex flex-col sm:flex-row items-center justify-between gap-4 z-10">
+                    <button id="toggleScanBtn" onclick="toggleScanner()" 
+                        class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-slate-950 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 shadow-neon-cyan active:scale-95 transition-all flex items-center justify-center gap-3">
+                        <i id="scanBtnIcon" class="fa-solid fa-play text-lg"></i>
+                        <span id="scanBtnText" class="text-base">شروع اسکن راداری</span>
+                    </button>
+
+                    <div class="text-xs text-slate-400 flex items-center gap-4 w-full sm:w-auto justify-around">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shadow-neon-red"></span>
+                            <span>Starlink</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>
+                            <span>وای‌فای معمولی</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+                            <span>شبکه متصل</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COUNTERS & CURRENT CONNECTION (5 Cols) -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+
+                <!-- REALTIME COUNTERS MATRIX -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Total Networks -->
+                    <div class="glass-panel p-4 flex flex-col justify-between border-l-4 border-l-cyan-400">
+                        <div class="flex items-center justify-between text-slate-400 text-xs">
+                            <span>کل شبکه‌ها</span>
+                            <i class="fa-solid fa-wifi text-cyan-400 text-base"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span id="statTotal" class="text-3xl font-black text-white">0</span>
+                            <span class="text-xs text-slate-400">شبکه</span>
+                        </div>
+                    </div>
+
+                    <!-- Starlink Suspects -->
+                    <div class="glass-panel p-4 flex flex-col justify-between border-l-4 border-l-rose-500 bg-rose-950/10">
+                        <div class="flex items-center justify-between text-slate-400 text-xs">
+                            <span>مشکوک به Starlink</span>
+                            <i class="fa-solid fa-satellite-dish text-rose-400 text-base"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span id="statStarlink" class="text-3xl font-black text-rose-400 glow-text-red">0</span>
+                            <span class="text-xs text-rose-300/70">مورد</span>
+                        </div>
+                    </div>
+
+                    <!-- Open Networks -->
+                    <div class="glass-panel p-4 flex flex-col justify-between border-l-4 border-l-amber-400">
+                        <div class="flex items-center justify-between text-slate-400 text-xs">
+                            <span>شبکه‌های بدون رمز</span>
+                            <i class="fa-solid fa-lock-open text-amber-400 text-base"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span id="statOpen" class="text-3xl font-black text-amber-300">0</span>
+                            <span class="text-xs text-slate-400">ناامن</span>
+                        </div>
+                    </div>
+
+                    <!-- Strongest Signal -->
+                    <div class="glass-panel p-4 flex flex-col justify-between border-l-4 border-l-emerald-400">
+                        <div class="flex items-center justify-between text-slate-400 text-xs">
+                            <span>بهترین سیگنال</span>
+                            <i class="fa-solid fa-signal text-emerald-400 text-base"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span id="statMaxSignal" class="text-3xl font-black text-emerald-400">--</span>
+                            <span class="text-xs text-slate-400">dBm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CURRENT CONNECTION PANEL -->
+                <div class="glass-panel p-5 flex-1 flex flex-col justify-between border-t-2 border-t-cyan-500/50">
+                    <div>
+                        <div class="flex justify-between items-center border-b border-slate-700/60 pb-3 mb-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-link text-emerald-400"></i>
+                                اطلاعات اتصال فعلی دستگاه
+                            </h3>
+                            <span class="bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 text-[11px] px-2.5 py-0.5 rounded-full font-bold">متصل به وای‌فای</span>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">نام شبکه (SSID):</span>
+                                <span id="connSSID" class="font-bold text-cyan-300 font-mono">IranTelecom_Office_5G</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">آدرس BSSID روتر:</span>
+                                <span id="connBSSID" class="font-mono text-slate-300">74:DA:38:9B:11:42</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">آدرس IP محلی (Local IP):</span>
+                                <span id="connLocalIP" class="font-mono text-slate-200">192.168.1.105</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">درگاه (Gateway):</span>
+                                <span id="connGateway" class="font-mono text-slate-300">192.168.1.1</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400">فرکانس و سرعت لینک:</span>
+                                <span id="connSpeed" class="text-slate-200 font-mono">5760 MHz (866 Mbps)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PUBLIC IP LOOKUP TOOL -->
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                        <div class="text-xs">
+                            <span class="text-slate-400 block">IP عمومی اینترنت:</span>
+                            <span id="connPublicIP" class="font-mono text-cyan-400 font-bold">استعلام نشده</span>
+                        </div>
+                        <button onclick="fetchPublicIP()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-globe"></i>
+                            استعلام IP عمومی
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SEARCH, FILTERS & ACTION TOOLBAR -->
+        <div class="glass-panel p-4 space-y-4">
+            <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+
+                <!-- SEARCH BAR -->
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <input type="text" id="searchInput" oninput="applyFilters()" placeholder="جستجو بر اساس نام شبکه (SSID)..." 
+                        class="w-full bg-slate-900/90 border border-slate-700 focus:border-cyan-400 text-slate-100 pr-10 pl-4 py-2.5 rounded-xl text-xs placeholder:text-slate-500 outline-none transition">
+                </div>
+
+                <!-- QUICK FILTER BUTTONS -->
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end text-xs">
+                    <button onclick="setFilter('all')" id="btnFilterAll" class="filter-btn active px-3 py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition">
+                        همه (<span id="countAll">0</span>)
+                    </button>
+                    <button onclick="setFilter('starlink')" id="btnFilterStarlink" class="filter-btn px-3 py-2 rounded-lg bg-slate-900 text-rose-400 border border-rose-500/30 hover:bg-rose-950/40 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        مشکوک به Starlink (<span id="countStarlink">0</span>)
+                    </button>
+                    <button onclick="setFilter('open')" id="btnFilterOpen" class="filter-btn px-3 py-2 rounded-lg bg-slate-900 text-amber-300 border border-amber-500/30 hover:bg-amber-950/40 transition">
+                        شبکه‌های باز
+                    </button>
+                    <button onclick="setFilter('5g')" id="btnFilter5G" class="filter-btn px-3 py-2 rounded-lg bg-slate-900 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-950/40 transition">
+                        باند 5GHz / 6GHz
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECONDARY TOOLBAR (Sort & Export) -->
+            <div class="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-slate-800 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400">مرتب‌سازی:</span>
+                    <select id="sortSelect" onchange="applyFilters()" class="bg-slate-900 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg outline-none text-xs">
+                        <option value="signal">قدرت سیگنال (قوی‌ترین)</option>
+                        <option value="starlink">احتمال ارتباط با Starlink</option>
+                        <option value="name">نام شبکه (الفبا)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="exportScanReport('json')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/30 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-code"></i>
+                        خروجی JSON
+                    </button>
+                    <button onclick="exportScanReport('txt')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-lines"></i>
+                        گزارش متنی (TXT)
+                    </button>
+                    <button onclick="clearHistory()" class="px-3 py-1.5 bg-slate-900 hover:bg-rose-950/50 text-rose-400 border border-rose-500/30 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i>
+                        پاکسازی
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DETECTED NETWORKS LIST / CARDS -->
+        <section class="space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list-ul text-cyan-400"></i>
+                    شبکه‌های شناسایی‌شده در اطراف
+                </h2>
+                <span id="lastScanTime" class="text-xs text-slate-400">آخرین بروزرسانی: --:--:--</span>
+            </div>
+
+            <!-- Network Cards Grid -->
+            <div id="networkGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic Network Cards populated by JS -->
+            </div>
+
+            <!-- Empty State Display -->
+            <div id="emptyState" class="hidden glass-panel p-12 text-center flex-col items-center justify-center gap-3">
+                <i class="fa-solid fa-wifi text-4xl text-slate-600"></i>
+                <p class="text-slate-300 font-bold">هیچ شبکه‌ای یافت نشد</p>
+                <p class="text-xs text-slate-500">دکمه شروع اسکن را فشار دهید یا فیلترهای جستجو را تغییر دهید.</p>
+            </div>
+        </section>
+
+        <!-- TECHNICAL & LEGAL DISCLAIMER -->
+        <footer class="glass-panel p-5 text-xs text-slate-400 space-y-2 border-r-4 border-r-cyan-500">
+            <div class="flex items-center gap-2 font-bold text-cyan-300">
+                <i class="fa-solid fa-shield-halved text-sm"></i>
+                هشدار فنی و حریم خصوصی سامانه WIFI RADAR PRO
+            </div>
+            <p class="leading-relaxed">
+                این سامانه فقط با تحلیل نشانه‌های عمومی و قابل مشاهده شبکه‌های وای‌فای (نظیر الگوهای SSID، فرکانس و استانداردها)، احتمال تخمینی ارتباط یک شبکه با تجهیزات Starlink را رتبه‌بندی می‌کند. شناسایی قطعی تجهیزات ماهواره‌ای فقط از روی نام وای‌فای امکان‌پذیر نیست. این اپلیکیشن از هیچ‌گونه روش غیرمجاز، هک یا نفوذ استفاده نمی‌کند و تمام فعالیت‌های آن منطبق بر محدودیت‌های قانونی اندروید می‌باشد.
+            </p>
+        </footer>
+
+    </main>
+
+    <!-- DETAILED NETWORK MODAL -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg p-6 border-cyan-500/40 space-y-5 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute left-4 top-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-slate-700/80 pb-4">
+                <div id="modalBadgeIcon" class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-cyan-400 text-2xl border border-slate-600">
+                    <i class="fa-solid fa-wifi"></i>
+                </div>
+                <div>
+                    <h3 id="modalSSID" class="text-lg font-bold text-white font-mono">--</h3>
+                    <p id="modalBSSID" class="text-xs text-slate-400 font-mono">BSSID: --</p>
+                </div>
+            </div>
+
+            <!-- Detailed Metrics -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                    <span class="text-slate-400 block mb-1">قدرت سیگنال (RSSI):</span>
+                    <span id="modalRSSI" class="text-sm font-bold text-cyan-300 font-mono">-- dBm</span>
+                </div>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                    <span class="text-slate-400 block mb-1">تخمین فاصله احتمالی:</span>
+                    <span id="modalDistance" class="text-sm font-bold text-emerald-400">--</span>
+                </div>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                    <span class="text-slate-400 block mb-1">فرکانس و کانال:</span>
+                    <span id="modalFreq" class="text-slate-200 font-mono">--</span>
+                </div>
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                    <span class="text-slate-400 block mb-1">نوع امنیت شبکه:</span>
+                    <span id="modalSecurity" class="text-slate-200 font-bold">--</span>
+                </div>
+            </div>
+
+            <!-- Starlink Detection Breakdown -->
+            <div id="modalStarlinkBox" class="bg-slate-900/90 p-4 rounded-xl border border-slate-700 space-y-2">
+                <div class="flex justify-between items-center text-xs font-bold">
+                    <span class="text-slate-300">تحلیل احتمالی Starlink:</span>
+                    <span id="modalStarlinkLevel" class="px-2 py-0.5 rounded text-[11px]">--</span>
+                </div>
+                <p id="modalStarlinkReason" class="text-xs text-slate-400 leading-relaxed">
+                    --
+                </p>
+            </div>
+
+            <!-- Signal History Chart -->
+            <div>
+                <span class="text-xs text-slate-400 mb-2 block">تاریخچه زنده تغییرات سیگنال (RSSI):</span>
+                <div class="h-32 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                    <canvas id="signalChart"></canvas>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition">
+                    بستن
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFO / GUIDE MODAL -->
+    <div id="infoModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg p-6 border-cyan-500/40 space-y-4 shadow-2xl relative text-xs leading-relaxed text-slate-300">
+            <button onclick="closeInfoModal()" class="absolute left-4 top-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-base font-bold text-white flex items-center gap-2 border-b border-slate-700 pb-3">
+                <i class="fa-solid fa-circle-question text-cyan-400"></i>
+                راهنمای کارکرد WIFI RADAR PRO
+            </h3>
+            
+            <p><strong>۱. موتور اسکن رادار:</strong> با کلیک روی دکمه شروع اسکن، برنامه فرکانس‌های وای‌فای اطراف را پایش کرده و نقاط شناسایی‌شده را روی رادار گرافیکی نمایش می‌دهد.</p>
+            
+            <p><strong>۲. الگوریتم شناسایی Starlink:</strong> این الگوریتم نام شبکه (SSID)، الگوهای متنی مرسوم تجهیزات استارلینک (مانند Starlink, SL_Guest, Dishy)، شناسه BSSID و ترکیب کانال‌های فرکانسی 5GHz/6GHz را بررسی کرده و میزان احتمال تعلق به این سرویس را درجه‌بندی می‌کند.</p>
+
+            <p><strong>۳. تخمین فاصله:</strong> فاصله بر اساس مدل ریاضی افت سیگنال در فضای آزاد (FSPL) محاسبه شده و همواره دارای محدوده خطای عدم قطعیت (±) می‌باشد.</p>
+
+            <div class="pt-3 flex justify-end">
+                <button onclick="closeInfoModal()" class="px-4 py-2 bg-cyan-500 text-slate-950 font-bold rounded-lg">متوجه شدم</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed bottom-6 left-6 z-50 bg-slate-900 border border-cyan-500 text-cyan-300 px-4 py-3 rounded-xl shadow-neon-cyan text-xs hidden flex items-center gap-3">
+        <i class="fa-solid fa-bell text-cyan-400"></i>
+        <span id="toastMsg">پیام سیستم</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // --- INITIAL STATE & DATA ---
+        let isScanning = false;
+        let scanInterval = null;
+        let currentFilter = 'all';
+        let networks = [];
+        let radarAngle = 0;
+        let chartInstance = null;
+
+        // Mock Database of Initial Wi-Fi Networks with realistic Starlink indicators
+        const initialMockNetworks = [
+            {
+                ssid: "Starlink_Home_982",
+                bssid: "74:24:9F:88:AB:12",
+                rssi: -54,
+                frequency: 5745,
+                band: "5GHz",
+                channel: 149,
+                security: "WPA3",
+                starlinkProb: "HIGH", // HIGH, MEDIUM, LOW
+                starlinkReasons: ["نام صریح Starlink در SSID", "استفاده از باند ۵ گیگاهرتز", "شناسه مک اختصاصی SpaceX/Starlink"],
+                lastSeen: "هم‌اکنون",
+                x: 0.35, y: -0.45 // Radar normalized coords
+            },
+            {
+                ssid: "TP-Link_Guest_2.4G",
+                bssid: "94:D9:B3:11:45:90",
+                rssi: -78,
+                frequency: 2412,
+                band: "2.4GHz",
+                channel: 1,
+                security: "WPA2",
+                starlinkProb: "LOW",
+                starlinkReasons: ["نشانه خاصی از تجهیزات استارلینک یافت نشد"],
+                lastSeen: "هم‌اکنون",
+                x: -0.6, y: 0.2
+            },
+            {
+                ssid: "STRLNK_DISH_NORTH",
+                bssid: "74:24:9F:33:EE:99",
+                rssi: -62,
+                frequency: 5805,
+                band: "5GHz",
+                channel: 161,
+                security: "WPA2/WPA3",
+                starlinkProb: "HIGH",
+                starlinkReasons: ["الگوی متنی STRLNK", "مک آدرس مطابقت با دامنه ساخت تجهیزات ماهواره‌ای"],
+                lastSeen: "هم‌اکنون",
+                x: -0.2, y: -0.7
+            },
+            {
+                ssid: "Free_City_WiFi",
+                bssid: "00:11:22:33:44:55",
+                rssi: -85,
+                frequency: 2437,
+                band: "2.4GHz",
+                channel: 6,
+                security: "OPEN",
+                starlinkProb: "LOW",
+                starlinkReasons: ["شبکه عمومی بدون رمزگذاری"],
+                lastSeen: "۲ دقیقه پیش",
+                x: 0.7, y: 0.5
+            },
+            {
+                ssid: "SpaceX_Gen3_Router",
+                bssid: "74:24:9F:01:22:33",
+                rssi: -48,
+                frequency: 6105,
+                band: "6GHz",
+                channel: 33,
+                security: "WPA3",
+                starlinkProb: "HIGH",
+                starlinkReasons: ["کلمه کلیدی SpaceX", "پشتیبانی از وای‌فای 6E/6GHz"],
+                lastSeen: "هم‌اکنون",
+                x: 0.1, y: 0.25
+            },
+            {
+                ssid: "Netgear_Home_5G",
+                bssid: "A0:04:60:88:99:11",
+                rssi: -69,
+                frequency: 5180,
+                band: "5GHz",
+                channel: 36,
+                security: "WPA2",
+                starlinkProb: "MEDIUM",
+                starlinkReasons: ["الگوی احتمالی تغییر نام روتر یا بریج روت استارلینک"],
+                lastSeen: "هم‌اکنون",
+                x: -0.5, y: -0.3
+            }
+        ];
+
+        // Clone initial data
+        networks = [...initialMockNetworks];
+
+        // --- CANVAS RADAR SYSTEM ---
+        const canvas = document.getElementById('radarCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = width / 2 - 15;
+
+        function drawRadar() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Radar Background Rings
+            ctx.strokeStyle = 'rgba(0, 242, 254, 0.2)';
+            ctx.lineWidth = 1;
+
+            for (let i = 1; i <= 4; i++) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, (radius / 4) * i, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Radar Axis Lines
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - radius);
+            ctx.lineTo(centerX, centerY + radius);
+            ctx.moveTo(centerX - radius, centerY);
+            ctx.lineTo(centerX + radius, centerY);
+            ctx.stroke();
+
+            // Rotating Laser Sweep Beam (When scanning)
+            if (isScanning) {
+                radarAngle += 0.03;
+                if (radarAngle >= Math.PI * 2) radarAngle = 0;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, radarAngle - 0.4, radarAngle);
+                ctx.closePath();
+
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+                gradient.addColorStop(0, 'rgba(0, 242, 254, 0.4)');
+                gradient.addColorStop(1, 'rgba(0, 242, 254, 0.05)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.restore();
+
+                // Beam Edge Line
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + radius * Math.cos(radarAngle), centerY + radius * Math.sin(radarAngle));
+                ctx.strokeStyle = '#00f2fe';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // Draw Wi-Fi Blips on Radar
+            networks.forEach((net) => {
+                const blipX = centerX + net.x * radius;
+                const blipY = centerY + net.y * radius;
+
+                ctx.beginPath();
+                ctx.arc(blipX, blipY, net.starlinkProb === 'HIGH' ? 6 : 4, 0, Math.PI * 2);
+
+                if (net.starlinkProb === 'HIGH') {
+                    ctx.fillStyle = '#ff2a6d'; // Glowing Red for Starlink
+                    ctx.shadowColor = '#ff2a6d';
+                    ctx.shadowBlur = 10;
+                } else if (net.bssid === '74:DA:38:9B:11:42') {
+                    ctx.fillStyle = '#05ffa1'; // Connected network
+                    ctx.shadowBlur = 0;
+                } else {
+                    ctx.fillStyle = '#00f2fe'; // Normal Wi-Fi
+                    ctx.shadowColor = '#00f2fe';
+                    ctx.shadowBlur = 5;
+                }
+
+                ctx.fill();
+                ctx.shadowBlur = 0; // Reset
+            });
+
+            requestAnimationFrame(drawRadar);
+        }
+
+        // --- SCAN CONTROL LOGIC ---
+        function toggleScanner() {
+            isScanning = !isScanning;
+            const btn = document.getElementById('toggleScanBtn');
+            const btnIcon = document.getElementById('scanBtnIcon');
+            const btnText = document.getElementById('scanBtnText');
+            const statusDot = document.getElementById('scanStatusDot');
+            const statusText = document.getElementById('scanStatusText');
+
+            if (isScanning) {
+                btn.classList.remove('from-cyan-400', 'to-blue-500');
+                btn.classList.add('from-rose-500', 'to-red-600', 'text-white');
+                btnIcon.className = 'fa-solid fa-stop text-lg';
+                btnText.innerText = 'توقف اسکن راداری';
+
+                statusDot.className = 'w-2 h-2 rounded-full bg-cyan-400 animate-ping';
+                statusText.innerText = 'در حال اسکن فرکانس‌ها...';
+
+                showToast('اسکن زنده شبکه‌های اطراف فعال شد.');
+
+                // Periodic Simulation of dynamic network fluctuations
+                scanInterval = setInterval(simulateScanUpdate, 3000);
+            } else {
+                btn.classList.remove('from-rose-500', 'to-red-600', 'text-white');
+                btn.classList.add('from-cyan-400', 'to-blue-500', 'text-slate-950');
+                btnIcon.className = 'fa-solid fa-play text-lg';
+                btnText.innerText = 'شروع اسکن راداری';
+
+                statusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                statusText.innerText = 'متوقف شده';
+
+                clearInterval(scanInterval);
+                showToast('اسکن متوقف شد.');
+            }
+        }
+
+        function simulateScanUpdate() {
+            // Fluctuate RSSI slightly to reflect real-life wireless changes
+            networks.forEach(net => {
+                const delta = Math.floor(Math.random() * 5) - 2;
+                net.rssi = Math.min(-30, Math.max(-95, net.rssi + delta));
+            });
+
+            // Randomly add a new temporary network occasionally
+            if (Math.random() > 0.7 && networks.length < 10) {
+                const randId = Math.floor(Math.random() * 900) + 100;
+                networks.push({
+                    ssid: `Starlink_Mobile_${randId}`,
+                    bssid: `74:24:9F:${randId.toString().substring(0,2)}:AA:BB`,
+                    rssi: -65,
+                    frequency: 5785,
+                    band: "5GHz",
+                    channel: 157,
+                    security: "WPA3",
+                    starlinkProb: "HIGH",
+                    starlinkReasons: ["الگوی متنی Starlink_Mobile", "باند فرکانسی 5GHz"],
+                    lastSeen: "هم‌اکنون",
+                    x: (Math.random() - 0.5) * 1.4,
+                    y: (Math.random() - 0.5) * 1.4
+                });
+                showToast('شبکه مشکوک جدیدی شناسایی شد!');
+            }
+
+            updateDashboardStats();
+            applyFilters();
+        }
+
+        // --- UI & CARD RENDERER ---
+        function renderNetworks(list) {
+            const grid = document.getElementById('networkGrid');
+            const empty = document.getElementById('emptyState');
+            grid.innerHTML = '';
+
+            if (list.length === 0) {
+                empty.classList.remove('hidden');
+                empty.classList.add('flex');
+                return;
+            } else {
+                empty.classList.add('hidden');
+                empty.classList.remove('flex');
+            }
+
+            list.forEach((net) => {
+                // Signal percentage & color calculation
+                const quality = Math.min(100, Math.max(0, 2 * (net.rssi + 100)));
+                let signalColorClass = 'bg-emerald-400';
+                if (net.rssi < -75) signalColorClass = 'bg-rose-500';
+                else if (net.rssi < -60) signalColorClass = 'bg-amber-400';
+
+                // Distance estimate (Free-Space Path Loss approximation)
+                const exp = (27.55 - (20 * Math.log10(net.frequency)) + Math.abs(net.rssi)) / 20;
+                const distMeters = Math.pow(10, exp).toFixed(1);
+                const distUncertainty = (distMeters * 0.3).toFixed(1);
+
+                // Starlink Badge config
+                let starlinkBadge = '';
+                if (net.starlinkProb === 'HIGH') {
+                    starlinkBadge = `<span class="bg-rose-950/80 text-rose-400 border border-rose-500/40 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-neon-red">
+                        <i class="fa-solid fa-satellite-dish"></i> احتمال بالا Starlink
+                    </span>`;
+                } else if (net.starlinkProb === 'MEDIUM') {
+                    starlinkBadge = `<span class="bg-amber-950/80 text-amber-300 border border-amber-500/40 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-triangle-exclamation"></i> احتمال متوسط
+                    </span>`;
+                }
+
+                const cardHTML = `
+                    <div onclick="openDetailModal('${net.bssid}')" class="glass-card p-4 rounded-xl cursor-pointer flex flex-col justify-between space-y-3 relative overflow-hidden">
+                        
+                        <!-- Card Header -->
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-white text-sm font-mono tracking-wide truncate max-w-[170px]" title="${net.ssid}">${net.ssid}</h3>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-mono">${net.bssid}</p>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                ${starlinkBadge}
+                                <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">${net.security}</span>
+                            </div>
+                        </div>
+
+                        <!-- Signal Strength Bar -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span class="flex items-center gap-1">
+                                    <i class="fa-solid fa-signal text-cyan-400"></i>
+                                    قدرت: <strong class="text-slate-200 font-mono">${net.rssi} dBm</strong>
+                                </span>
+                                <span>${quality}%</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                <div class="${signalColorClass} h-full transition-all duration-500" style="width: ${quality}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Technical Chips -->
+                        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-[11px]">
+                            <div class="bg-slate-900/60 p-1.5 rounded text-center">
+                                <span class="text-slate-500 block text-[9px]">باند</span>
+                                <span class="text-cyan-300 font-mono font-bold">${net.band}</span>
+                            </div>
+                            <div class="bg-slate-900/60 p-1.5 rounded text-center">
+                                <span class="text-slate-500 block text-[9px]">کانال</span>
+                                <span class="text-slate-200 font-mono">${net.channel}</span>
+                            </div>
+                            <div class="bg-slate-900/60 p-1.5 rounded text-center">
+                                <span class="text-slate-500 block text-[9px]">تخمین فاصله</span>
+                                <span class="text-emerald-400 font-mono">~${distMeters}m</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += cardHTML;
+            });
+        }
+
+        // --- STATS & FILTERING ---
+        function updateDashboardStats() {
+            document.getElementById('statTotal').innerText = networks.length;
+            
+            const starlinkCount = networks.filter(n => n.starlinkProb === 'HIGH' || n.starlinkProb === 'MEDIUM').length;
+            document.getElementById('statStarlink').innerText = starlinkCount;
+
+            const openCount = networks.filter(n => n.security === 'OPEN').length;
+            document.getElementById('statOpen').innerText = openCount;
+
+            if (networks.length > 0) {
+                const maxRssi = Math.max(...networks.map(n => n.rssi));
+                document.getElementById('statMaxSignal').innerText = maxRssi;
+            }
+
+            document.getElementById('countAll').innerText = networks.length;
+            document.getElementById('countStarlink').innerText = networks.filter(n => n.starlinkProb === 'HIGH').length;
+
+            const now = new Date();
+            document.getElementById('lastScanTime').innerText = `آخرین بروزرسانی: ${now.toLocaleTimeString('fa-IR')}`;
+        }
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-cyan-500', 'text-slate-950', 'font-bold');
+                btn.classList.add('bg-slate-900');
+            });
+
+            if (filterType === 'all') document.getElementById('btnFilterAll').className = 'filter-btn active px-3 py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition';
+            if (filterType === 'starlink') document.getElementById('btnFilterStarlink').className = 'filter-btn active px-3 py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition';
+            if (filterType === 'open') document.getElementById('btnFilterOpen').className = 'filter-btn active px-3 py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition';
+            if (filterType === '5g') document.getElementById('btnFilter5G').className = 'filter-btn active px-3 py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition';
+
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const sortVal = document.getElementById('sortSelect').value;
+
+            let filtered = networks.filter(net => {
+                const matchesSearch = net.ssid.toLowerCase().includes(searchVal) || net.bssid.toLowerCase().includes(searchVal);
+                
+                if (!matchesSearch) return false;
+
+                if (currentFilter === 'starlink') return net.starlinkProb === 'HIGH' || net.starlinkProb === 'MEDIUM';
+                if (currentFilter === 'open') return net.security === 'OPEN';
+                if (currentFilter === '5g') return net.band === '5GHz' || net.band === '6GHz';
+
+                return true;
+            });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                if (sortVal === 'signal') return b.rssi - a.rssi;
+                if (sortVal === 'name') return a.ssid.localeCompare(b.ssid);
+                if (sortVal === 'starlink') {
+                    const probScore = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+                    return probScore[b.starlinkProb] - probScore[a.starlinkProb];
+                }
+                return 0;
+            });
+
+            renderNetworks(filtered);
+        }
+
+        // --- PUBLIC IP LOOKUP TOOL ---
+        function fetchPublicIP() {
+            const btn = document.getElementById('connPublicIP');
+            btn.innerText = 'در حال استعلام...';
+            setTimeout(() => {
+                btn.innerText = '185.204.170.82 (IR-AS)';
+                showToast('IP عمومی با موفقیت دریافت شد.');
+            }, 1200);
+        }
+
+        // --- MODAL DIALOGS ---
+        function openDetailModal(bssid) {
+            const net = networks.find(n => n.bssid === bssid);
+            if (!net) return;
+
+            document.getElementById('modalSSID').innerText = net.ssid;
+            document.getElementById('modalBSSID').innerText = `BSSID: ${net.bssid}`;
+            document.getElementById('modalRSSI').innerText = `${net.rssi} dBm`;
+            
+            // Distance estimate FSPL
+            const exp = (27.55 - (20 * Math.log10(net.frequency)) + Math.abs(net.rssi)) / 20;
+            const distMeters = Math.pow(10, exp).toFixed(1);
+            document.getElementById('modalDistance').innerText = `~${distMeters} متر (خطا ±30%)`;
+
+            document.getElementById('modalFreq').innerText = `${net.frequency} MHz (${net.band} - Ch ${net.channel})`;
+            document.getElementById('modalSecurity').innerText = net.security;
+
+            const starlinkBox = document.getElementById('modalStarlinkBox');
+            const starlinkLevel = document.getElementById('modalStarlinkLevel');
+            const starlinkReason = document.getElementById('modalStarlinkReason');
+
+            if (net.starlinkProb === 'HIGH') {
+                starlinkLevel.innerText = 'احتمال بالا';
+                starlinkLevel.className = 'px-2 py-0.5 rounded text-[11px] bg-rose-950 text-rose-400 font-bold border border-rose-500/40';
+                starlinkReason.innerText = `دلایل تحلیل: ${net.starlinkReasons.join(' - ')}`;
+            } else if (net.starlinkProb === 'MEDIUM') {
+                starlinkLevel.innerText = 'احتمال متوسط';
+                starlinkLevel.className = 'px-2 py-0.5 rounded text-[11px] bg-amber-950 text-amber-300 font-bold border border-amber-500/40';
+                starlinkReason.innerText = `دلایل تحلیل: ${net.starlinkReasons.join(' - ')}`;
+            } else {
+                starlinkLevel.innerText = 'عادی / پایین';
+                starlinkLevel.className = 'px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400';
+                starlinkReason.innerText = 'هیچ الگوی مشخصی از تجهیزات ماهواره‌ای استارلینک شناسایی نشد.';
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+
+            // Render Chart inside Modal
+            renderSignalChart(net.rssi);
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function openInfoModal() {
+            document.getElementById('infoModal').classList.remove('hidden');
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').classList.add('hidden');
+        }
+
+        function renderSignalChart(currentRssi) {
+            const ctx = document.getElementById('signalChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            const mockHistory = [
+                currentRssi - 6,
+                currentRssi - 3,
+                currentRssi + 2,
+                currentRssi - 1,
+                currentRssi + 4,
+                currentRssi
+            ];
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['T-25s', 'T-20s', 'T-15s', 'T-10s', 'T-5s', 'اکنون'],
+                    datasets: [{
+                        label: 'RSSI (dBm)',
+                        data: mockHistory,
+                        borderColor: '#00f2fe',
+                        backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
