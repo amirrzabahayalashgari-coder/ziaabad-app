@@ -1,0 +1,33 @@
+name: ZiaAI Online CI
+on:
+  push:
+    branches: [ziaai-online]
+    paths:
+      - "ziaai-online/**"
+      - ".github/workflows/ziaai-online-ci.yml"
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          pip install -r ziaai-online/requirements.txt
+      - name: Compile Python
+        run: python -m compileall -q ziaai-online
+      - name: Verify required files
+        run: |
+          test -s ziaai-online/app.py
+          test -s ziaai-online/index.html
+          test -s ziaai-online/admin.html
+          test -s ziaai-online/Dockerfile
+          test -s ziaai-online/render.yaml
+      - name: Build container
+        run: docker build -t ziaai-online ./ziaai-online
