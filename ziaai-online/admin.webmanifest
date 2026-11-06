@@ -1,0 +1,14 @@
+{
+  "name": "ZiaAI Admin",
+  "short_name": "ZiaAI Admin",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101a2d",
+  "theme_color": "#101a2d",
+  "icons": [
+    {"src": "/admin-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}
