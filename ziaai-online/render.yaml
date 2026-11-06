@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: ziaai-online
+    runtime: docker
+    plan: starter
+    rootDir: ziaai-online
+    healthCheckPath: /api/health
+    disk:
+      name: ziaai-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATA_DIR
+        value: /app/data
+      - key: MAX_UPLOAD_MB
+        value: "500"
