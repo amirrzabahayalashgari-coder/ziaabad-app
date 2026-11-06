@@ -196,3 +196,47 @@ def job_result(job_id: str, x_client_id: str = Header(default="")):
     if not job or job["user_id"] != x_client_id: raise HTTPException(404, "پردازش پیدا نشد")
     if job["status"] != "done": raise HTTPException(409, "متن هنوز آماده نیست")
     return PlainTextResponse(job["text"])
+
+
+# IP-level controls: the recorded address is the network peer visible to this app.
+with db() as _c:
+    _c.execute("CREATE TABLE IF NOT EXISTS blocked_ips(ip TEXT PRIMARY KEY, created_at TEXT, reason TEXT DEFAULT '')")
+
+def user_check(user_id: str, ip: str):
+    if not re.fullmatch(r"[A-Za-z0-9_-]{12,80}", user_id or ""):
+        raise HTTPException(400, "شناسه کاربر معتبر نیست")
+    with db() as c:
+        if c.execute("SELECT 1 FROM blocked_ips WHERE ip=?", (ip,)).fetchone():
+            raise HTTPException(403, "دسترسی این شبکه محدود شده است")
+        row = c.execute("SELECT * FROM users WHERE user_id=?", (user_id,)).fetchone()
+        if row and row["blocked"]:
+            raise HTTPException(403, "دسترسی این شناسه محدود شده است")
+        if not row:
+            c.execute("INSERT INTO users(user_id,ip,first_seen,last_seen) VALUES(?,?,?,?)",
+                      (user_id, ip, now(), now()))
+        else:
+            c.execute("UPDATE users SET ip=?,last_seen=?,request_count=request_count+1 WHERE user_id=?",
+                      (ip, now(), user_id))
+    return user_id
+
+@app.post("/api/admin/ip/block")
+def block_ip(payload: dict, x_admin_token: str = Header(default="")):
+    require_admin(x_admin_token)
+    ip = str(payload.get("ip", "")).strip()
+    if not ip or len(ip) > 64 or any(ch not in "0123456789abcdefABCDEF:." for ch in ip):
+        raise HTTPException(400, "نشانی IP معتبر نیست")
+    with db() as c:
+        c.execute("INSERT OR REPLACE INTO blocked_ips(ip,created_at,reason) VALUES(?,?,?)",
+                  (ip, now(), str(payload.get("reason", "admin action"))[:120]))
+    event("admin", "block_ip", ip)
+    return {"ok": True}
+
+@app.post("/api/admin/ip/unblock")
+def unblock_ip(payload: dict, x_admin_token: str = Header(default="")):
+    require_admin(x_admin_token)
+    ip = str(payload.get("ip", "")).strip()
+    with db() as c:
+        cur = c.execute("DELETE FROM blocked_ips WHERE ip=?", (ip,))
+        if cur.rowcount == 0: raise HTTPException(404, "IP در فهرست مسدودها نبود")
+    event("admin", "unblock_ip", ip)
+    return {"ok": True}
