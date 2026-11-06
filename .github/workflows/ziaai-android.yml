@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "ZiaAI-Persian-source.zip.b64"
+      - "ZiaAI-Persian-source.zip"
       - ".github/workflows/ziaai-android.yml"
 
 permissions:
@@ -16,10 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Decode project source archive
-        run: |
-          base64 --decode ZiaAI-Persian-source.zip.b64 > /tmp/ziaai-source.zip
-          unzip -q /tmp/ziaai-source.zip
+      - name: Extract project source
+        run: unzip -q ZiaAI-Persian-source.zip
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
