@@ -1,19 +1,57 @@
 <!doctype html>
-<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10182b"><title>ziaAi</title>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff"><title>ziaAi | تبدیل گفتار به متن</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0d1424;color:#eef3ff;font-family:Tahoma,Arial,sans-serif;line-height:1.8}.wrap{max-width:850px;margin:auto;padding:24px 16px}.top,.panel{background:#172238;border:1px solid #293955;border-radius:20px;padding:22px;margin:18px 0}.top{display:flex;justify-content:space-between;gap:10px;align-items:center}.brand{font-size:22px;font-weight:bold}.tag{color:#8fe0c0;font-size:13px}h1{font-size:clamp(25px,5vw,38px);line-height:1.5}h1 span{color:#7ddfc1}.muted{color:#aebbd1}.drop{display:block;border:2px dashed #49617f;border-radius:16px;padding:26px;text-align:center;margin:18px 0;cursor:pointer}.drop input{display:block;margin:12px auto}button{border:0;border-radius:12px;padding:13px 18px;background:#5bd3b0;color:#09251e;font-weight:bold;font-size:15px;cursor:pointer}button:disabled{opacity:.45}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}.actions button{background:#344865;color:#fff}textarea{width:100%;min-height:300px;border-radius:12px;border:1px solid #435574;background:#0d1729;color:#fff;padding:15px;font:16px/2 Tahoma;direction:rtl}.bar{height:9px;background:#33435b;border-radius:9px;overflow:hidden;margin:12px 0}.bar span{display:block;height:100%;width:0;background:#5bd3b0}.hidden{display:none}.err{color:#ffb5b5}.small{font-size:13px;color:#aebbd1}@media(max-width:520px){.top{align-items:flex-start;flex-direction:column}.wrap{padding:12px}}
-</style></head><body><main class="wrap"><header class="top"><div class="brand">ziaAi</div><div class="tag">پردازش محلی · بدون API پولی</div></header>
-<section class="panel"><h1>صدایت را به <span>متن فارسی</span> تبدیل کن</h1><p class="muted">فایل صوتی را انتخاب کن. تبدیل با موتور متن‌باز Whisper روی همین رایانه/سرور انجام می‌شود.</p>
-<label class="drop">انتخاب فایل صوتی<input id="audio" type="file" accept="audio/*,.mp3,.wav,.m4a,.mp4,.ogg,.flac"></label><button id="go" disabled>شروع تبدیل</button><div id="status" class="muted"></div><div class="bar"><span id="fill"></span></div><div id="err" class="err"></div></section>
-<section id="result" class="panel hidden"><h2>متن پیاده‌سازی‌شده</h2><textarea id="text"></textarea><div class="actions"><button id="copy">کپی متن</button><button id="txt">دریافت TXT</button><button id="word">دریافت Word</button><button id="pdf">دریافت PDF</button></div></section>
-<p class="small">اجرای اول برای دریافت مدل به اینترنت نیاز دارد. پس از آن پردازش روی دستگاه میزبان انجام می‌شود. سرعت به سخت‌افزار و مدل انتخابی بستگی دارد.</p></main>
+:root{color-scheme:light;--ink:#172033;--muted:#64748b;--line:#e5eaf1;--soft:#f7f9fc;--blue:#2563eb;--blue2:#1d4ed8}
+*{box-sizing:border-box}
+body{margin:0;background:#f5f7fb;color:var(--ink);font-family:Tahoma,Arial,sans-serif;line-height:1.9}
+.wrap{max-width:900px;margin:auto;padding:28px 18px 18px}
+.top,.panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;margin:18px 0;box-shadow:0 8px 28px rgba(20,35,60,.045)}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.brand{font-size:25px;font-weight:800;letter-spacing:-.5px;color:#1e40af}
+.tag{font-size:13px;color:#16805d;background:#eaf8f1;padding:6px 12px;border-radius:99px}
+h1{font-size:clamp(25px,5vw,39px);line-height:1.55;margin:0 0 10px}
+h1 span{color:var(--blue)}
+h2{margin-top:0}.muted{color:var(--muted)}
+.drop{display:block;border:2px dashed #c7d4e5;background:#f9fbff;border-radius:17px;padding:25px;text-align:center;margin:20px 0;cursor:pointer;color:#334155;transition:.2s}
+.drop:hover{border-color:var(--blue);background:#f2f6ff}
+.drop input{display:block;max-width:100%;margin:12px auto 0}
+button{border:0;border-radius:13px;padding:13px 20px;background:var(--blue);color:#fff;font-weight:bold;font-size:15px;cursor:pointer;transition:background .2s,transform .2s}
+button:hover{background:var(--blue2);transform:translateY(-1px)}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.actions button{background:#eef3ff;color:#1e40af}.actions button:hover{background:#dfe9ff}
+textarea{width:100%;min-height:300px;border-radius:14px;border:1px solid #d8e0eb;background:#fff;color:var(--ink);padding:16px;font:16px/2 Tahoma;direction:rtl;outline-color:var(--blue)}
+.bar{height:10px;background:#e9eef5;border-radius:99px;overflow:hidden;margin:14px 0}
+.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#3b82f6,#22c55e);border-radius:99px;transition:width .35s}
+.hidden{display:none}.err{color:#b91c1c}.small{font-size:12px;color:#7b8798}
+footer{text-align:center;color:#7b8798;font-size:12px;padding:16px 8px 24px}
+@media(max-width:560px){.wrap{padding:12px}.top{align-items:flex-start;flex-direction:column}.top,.panel{padding:18px;border-radius:17px}.actions button{flex:1 1 42%}}
+@media print{body{background:#fff}.top,.drop,#go,.bar,.actions,footer,.small{display:none!important}.wrap{max-width:none;padding:0}.panel{box-shadow:none;border:0;padding:0}textarea{border:0;min-height:90vh}}
+</style></head>
+<body><main class="wrap">
+<header class="top"><div class="brand">ziaAi</div><div class="tag">موتور متن‌باز Whisper</div></header>
+<section class="panel">
+<h1>صدایت را به <span>متن فارسی</span> تبدیل کن</h1>
+<p class="muted">فایل صوتی را انتخاب کن و متن گفتار را دریافت کن. پردازش از طریق موتور Whisper انجام می‌شود.</p>
+<label class="drop">🎙️ انتخاب فایل صوتی<input id="audio" type="file" accept="audio/*,.mp3,.wav,.m4a,.mp4,.ogg,.flac"></label>
+<button id="go" disabled>شروع تبدیل</button><div id="status" class="muted" aria-live="polite"></div>
+<div class="bar"><span id="fill"></span></div><div id="err" class="err"></div>
+</section>
+<section id="result" class="panel hidden"><h2>متن پیاده‌سازی‌شده</h2><textarea id="text" spellcheck="false"></textarea>
+<div class="actions"><button id="copy">کپی متن</button><button id="txt">دریافت TXT</button><button id="word">دریافت Word</button><button id="pdf">دریافت PDF</button></div></section>
+<p class="small">توجه: اجرای اول ممکن است برای دریافت مدل به اینترنت نیاز داشته باشد. سرعت پردازش به سخت‌افزار و اندازه مدل بستگی دارد.</p>
+<footer>طراحی و توسعه توسط امیررضا باحیا لشگری</footer>
+</main>
 <script>
-const $=id=>document.getElementById(id);let file=null,job=null;
-$('audio').onchange=e=>{file=e.target.files[0];$('go').disabled=!file};
-$('go').onclick=()=>{if(!file)return;$('go').disabled=true;$('err').textContent='';$('status').textContent='در حال بارگذاری فایل…';let f=new FormData();f.append('audio',file);let x=new XMLHttpRequest();x.open('POST','/api/transcribe');x.upload.onprogress=e=>{if(e.lengthComputable){let p=Math.round(e.loaded/e.total*100);$('fill').style.width=p+'%';$('status').textContent='بارگذاری فایل: '+p+'٪'}};x.onload=()=>{let d=JSON.parse(x.responseText||'{}');if(x.status>=400){$('err').textContent=d.error||'خطا';$('go').disabled=false;return}job=d.job_id;poll()};x.onerror=()=>{$('err').textContent='ارتباط با سرور قطع شد';$('go').disabled=false};x.send(f)};
-async function poll(){try{let r=await fetch('/api/status/'+job),d=await r.json();$('status').textContent=d.message||'در حال پردازش';$('fill').style.width=(d.progress||0)+'%';if(d.transcript)$('text').value=d.transcript;if(d.state==='done'){$('result').classList.remove('hidden');$('go').disabled=false;return}if(d.state==='error'){$('err').textContent=d.message;$('go').disabled=false;return}setTimeout(poll,1600)}catch(e){$('err').textContent='خطا در دریافت وضعیت';$('go').disabled=false}}
-$('copy').onclick=()=>navigator.clipboard.writeText($('text').value);
-$('txt').onclick=()=>{let a=document.createElement('a'),u=URL.createObjectURL(new Blob(['\ufeff',$('text').value],{type:'text/plain;charset=utf-8'}));a.href=u;a.download='transcript.txt';a.click();URL.revokeObjectURL(u)};
-$('word').onclick=async()=>{let r=await fetch('/api/export/docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:$('text').value})});if(!r.ok){$('err').textContent='ساخت Word ناموفق بود';return}let b=await r.blob(),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='transcript.docx';a.click();URL.revokeObjectURL(u)};
+const $=id=>document.getElementById(id);let file=null,job=null,pollTimer=null;
+$('audio').onchange=e=>{file=e.target.files[0];$('go').disabled=!file;$('result').classList.add('hidden');$('err').textContent='';$('fill').style.width='0%'};
+$('go').onclick=()=>{if(!file)return;clearTimeout(pollTimer);$('go').disabled=true;$('err').textContent='';$('status').textContent='در حال بارگذاری فایل…';$('fill').style.width='0%';let f=new FormData();f.append('audio',file);let x=new XMLHttpRequest();x.open('POST','/api/transcribe');x.upload.onprogress=e=>{if(e.lengthComputable){let p=Math.round(e.loaded/e.total*100);$('fill').style.width=Math.min(p,20)+'%';$('status').textContent='بارگذاری فایل: '+p+'٪'}};x.onload=()=>{let d={};try{d=JSON.parse(x.responseText||'{}')}catch(_){}if(x.status>=400){$('err').textContent=d.error||'خطا در دریافت فایل';$('go').disabled=false;return}job=d.job_id;poll()};x.onerror=()=>{$('err').textContent='ارتباط با سرور قطع شد';$('go').disabled=false};x.send(f)};
+async function poll(){try{let r=await fetch('/api/status/'+job),d=await r.json();$('status').textContent=d.message||'در حال پردازش';$('fill').style.width=(d.progress||0)+'%';if(d.transcript)$('text').value=d.transcript;if(d.state==='done'){$('result').classList.remove('hidden');$('go').disabled=false;return}if(d.state==='error'){$('err').textContent=d.message;$('go').disabled=false;return}pollTimer=setTimeout(poll,1400)}catch(e){$('err').textContent='خطا در دریافت وضعیت؛ اتصال را بررسی کنید';$('go').disabled=false}}
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('text').value);$('status').textContent='متن کپی شد'}catch(e){$('err').textContent='کپی خودکار در این مرورگر در دسترس نیست'}};
+$('txt').onclick=()=>{let a=document.createElement('a'),u=URL.createObjectURL(new Blob(['\ufeff',$('text').value],{type:'text/plain;charset=utf-8'}));a.href=u;a.download='ziaAi-transcript.txt';a.click();URL.revokeObjectURL(u)};
+$('word').onclick=async()=>{let r=await fetch('/api/export/docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:$('text').value})});if(!r.ok){$('err').textContent='ساخت Word ناموفق بود';return}let b=await r.blob(),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='ziaAi-transcript.docx';a.click();URL.revokeObjectURL(u)};
 $('pdf').onclick=()=>window.print();
 </script></body></html>
