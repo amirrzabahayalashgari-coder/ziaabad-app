@@ -38,7 +38,8 @@ jobs:
         with:
           gradle-version: "8.9"
       - name: Build debug APK
-        run: gradle --no-daemon -p ZiaAI-Persian assembleDebug
+        run: gradle --no-daemon --stacktrace -p ZiaAI-Persian assembleDebug
+          test -s ZiaAI-Persian/app/build/outputs/apk/debug/app-debug.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
