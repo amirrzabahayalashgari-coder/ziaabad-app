@@ -240,3 +240,14 @@ def unblock_ip(payload: dict, x_admin_token: str = Header(default="")):
         if cur.rowcount == 0: raise HTTPException(404, "IP در فهرست مسدودها نبود")
     event("admin", "unblock_ip", ip)
     return {"ok": True}
+
+
+@app.get("/admin.webmanifest")
+def admin_manifest():
+    return PlainTextResponse((APP_DIR / "admin.webmanifest").read_text(encoding="utf-8"),
+                             media_type="application/manifest+json")
+
+@app.get("/admin-icon.svg")
+def admin_icon():
+    return PlainTextResponse((APP_DIR / "admin-icon.svg").read_text(encoding="utf-8"),
+                             media_type="image/svg+xml")
